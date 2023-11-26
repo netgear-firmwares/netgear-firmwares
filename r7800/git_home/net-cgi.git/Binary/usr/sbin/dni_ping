@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ "x$1" = "x1" ];then
+	ping -c $2 $3 > $4 2> $5 &
+else
+	ping -c $2 $3 > $4 2> $5
+fi

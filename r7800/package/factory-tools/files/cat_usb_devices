@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/bin/cat /proc/bus/usb/devices | /bin/grep \"Driver=usb-storage      \" -B6 | /bin/grep $1 -B4 | /bin/grep \"Ver\" | awk '{print $3}' > $2

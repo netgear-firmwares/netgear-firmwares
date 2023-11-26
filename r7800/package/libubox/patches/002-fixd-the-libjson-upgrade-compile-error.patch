@@ -1,0 +1,24 @@
+diff -Nur libubox-2013-07-04.org/blobmsg_json.h libubox-2013-07-04/blobmsg_json.h
+--- libubox-2013-07-04.org/blobmsg_json.h	2019-09-26 16:18:19.068407736 +0800
++++ libubox-2013-07-04/blobmsg_json.h	2019-09-26 16:18:29.872518769 +0800
+@@ -19,7 +19,7 @@
+ #ifdef JSONC
+ 	#include <json.h>
+ #else
+-	#include <json/json.h>
++	#include <json-c/json.h>
+ #endif
+ 
+ #include <stdbool.h>
+diff -Nur libubox-2013-07-04.org/jshn.c libubox-2013-07-04/jshn.c
+--- libubox-2013-07-04.org/jshn.c	2019-09-26 16:18:19.068407736 +0800
++++ libubox-2013-07-04/jshn.c	2019-09-26 16:18:35.064572126 +0800
+@@ -16,7 +16,7 @@
+ #ifdef JSONC
+         #include <json.h>
+ #else
+-        #include <json/json.h>
++        #include <json-c/json.h>
+ #endif
+ 
+ #include <string.h>

@@ -1,0 +1,12 @@
+diff -Nur ubus-2013-01-13.org/CMakeLists.txt ubus-2013-01-13/CMakeLists.txt
+--- ubus-2013-01-13.org/CMakeLists.txt	2019-09-26 16:40:07.202074231 +0800
++++ ubus-2013-01-13/CMakeLists.txt	2019-09-26 16:40:20.962217197 +0800
+@@ -20,7 +20,7 @@
+ 
+ ADD_EXECUTABLE(cli cli.c)
+ SET_TARGET_PROPERTIES(cli PROPERTIES OUTPUT_NAME ubus)
+-TARGET_LINK_LIBRARIES(cli ubus ubox blobmsg_json json)
++TARGET_LINK_LIBRARIES(cli ubus ubox blobmsg_json json-c)
+ 
+ SET(CMAKE_INSTALL_PREFIX /usr)
+ 

@@ -1,0 +1,35 @@
+From 3d825b8e0d03192c4e4bb7c280663666fafc498c Mon Sep 17 00:00:00 2001
+From: "Jenna.Chen" <jenna.chen@dniserver.dnish.net>
+Date: Thu, 10 Sep 2020 17:29:43 +0800
+Subject: [PATCH 2/3] fix compile error issue
+
+Signed-off-by: Jenna.Chen <jenna.chen@dniserver.dnish.net>
+---
+ configure.ac | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 1d7452f..1ad96a4 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -21,7 +21,7 @@ AC_CONFIG_MACRO_DIR([m4])
+ 
+ AC_CANONICAL_HOST
+ 
+-AM_INIT_AUTOMAKE([1.13 -Wall -Wno-portability -Wno-override foreign dist-xz tar-ustar serial-tests silent-rules subdir-objects])
++AM_INIT_AUTOMAKE([1.11.3 -Wall -Wno-portability -Wno-override foreign dist-xz tar-ustar parallel-tests silent-rules subdir-objects])
+ 
+ dnl @synopsis TRY_CFLAGS [compiler flags]
+ dnl @summary check whether compiler supports given flags and adds them to CFLAGS
+@@ -1384,7 +1384,7 @@ AM_CONDITIONAL([CHECK_WITH_FASTCGI], [test "$fastcgi_found" = yes])
+ AC_MSG_NOTICE([----------------------------------------])
+ dnl check for extra compiler options (warning options)
+ if test "${GCC}" = yes; then
+-  TRY_CFLAGS([-Wall -W -Wshadow -pedantic])
++  TRY_CFLAGS([-Wall -W -Wshadow -pedantic -std=c99])
+ fi
+ 
+ AC_ARG_ENABLE([extra-warnings],
+-- 
+2.7.4
+

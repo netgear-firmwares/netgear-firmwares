@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2013-2014 OpenWrt.org
+
+START=00
+
+boot() {
+	local check_folder="/etc"
+	if [ -f "/firmware_time" ]; then
+		check_folder="/firmware_time"
+	fi
+	local maxtime="$(find $check_folder -type f -exec date -r {} +%f \; | sort -nr | head -n1)"
+	date -s $maxtime
+}
+

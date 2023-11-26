@@ -1,0 +1,32 @@
+From a927cdee7463da07e49abbc098817144d5df6d14 Mon Sep 17 00:00:00 2001
+From: "Qiuhong.Su" <qiuhong.su@dniserver.dnish.net>
+Date: Thu, 10 Sep 2020 17:14:46 +0800
+Subject: [PATCH 3/3] support security storage
+
+Signed-off-by: haiyan.zhuang <haiyan.zhuang@dniserver.dnish.net>
+---
+ src/mod_openssl.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/mod_openssl.c b/src/mod_openssl.c
+index 12a9925..0272955 100644
+--- a/src/mod_openssl.c
++++ b/src/mod_openssl.c
+@@ -889,7 +889,13 @@ network_init_ssl (server *srv, void *p_d)
+                 return -1;
+             }
+           #endif
+-            if (network_openssl_load_pemfile(srv, s, i)) return -1;
++            ntgrcrypt_open();
++	    system("/sbin/https_cert_update start");
++	    if (network_openssl_load_pemfile(srv, s, i)) {
++		    ntgrcrypt_close();
++		    return -1;
++	    }
++	    ntgrcrypt_close();
+         }
+ 
+ 
+-- 
+2.7.4
+

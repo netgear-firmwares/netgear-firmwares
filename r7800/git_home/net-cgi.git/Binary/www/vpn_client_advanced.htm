@@ -1,0 +1,207 @@
+<% http_header("style/form2.css", "/funcs.js", "/base64.js","/vpn_client.js") %>
+<% body_header("_vpn_client", "vpn_client_advanced.htm", "vpn_client_selected") %>
+<style>
+
+.help_button_sty{font-size:25px;cursor:pointer;width:30px;height:40px;position:fixed; top:20px; right:40px;}
+
+a{
+cursor:pointer;
+}
+.apply_bt, .cancel_bt, .cancel1_bt, .apply1_bt, .add_bt, .edit_bt, .delete_bt,.delete1_bt{ height: 22px; color: #f2f2f2; font-family: Arial; font-weight: Bold; font-size: 14px; background-color: transparent; border: none; cursor: pointer; padding-bottom: 2px; }
+.apply_bt{width: 128px; background: url(../image/buttons.gif) no-repeat top left; }
+.cancel_bt{width: 128px; background: url(../image/buttons.gif) no-repeat 0 -22px; }
+.cancel1_bt{width: 128px; background: url(../image/buttons1.gif) no-repeat -320px -330px; }
+.apply1_bt{width: 128px; background: url(../image/buttons1.gif) no-repeat -192px -330px; }
+.add_bt {width: 135px;background: url(../image/buttons.gif) no-repeat 0 -110px}
+.edit_bt {width: 200px;background: url(../image/buttons.gif) no-repeat 0 -66px}
+.delete_bt {width: 180px;background: url(../image/buttons.gif) no-repeat -128px 0}
+.delete1_bt{width:180px; background: url(../image/buttons.gif) no-repeat -128px -22px}
+
+.tables{
+        font-family: Arial;
+        font-size: 12px;
+}
+
+.table_header{
+        color: #ffffff;
+        font-weight: Bold;
+        background-color: #767676;
+}
+
+.even_line{
+        background-color: #e5e5e5;
+}
+
+.odd_line{
+        background-color: white;
+}
+
+.subhead {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; FONT-FAMILY: Arial, Helvetica, Geneva, Swiss, SunSans-Regular, sans-serif
+}
+
+</style>
+<script>
+var master="<% cfg_get("http_loginname") %>";
+<% vpn_client_items_xss() %>
+<% save_timestamp("vpn_client_selected", "vpn_client_editnum","vpn_client_del") %>
+var select_mode="<% cfg_sed_xss("vpn_client_select_mode") %>";
+var show_list="<% echo_file("/tmp/netscan/attach_device") %>";
+var attach_array=show_list.split(' @#$$&*! ');
+var ts = "<% cfg_get("vpn_client_selected") %>";
+
+function loadvalue()
+{
+	var cf = document.forms[0];	
+
+	
+	if(select_mode=="0")
+		cf.selected_device[0].checked = true;
+	else
+		cf.selected_device[1].checked = true;
+	change_vpn_device();
+
+}
+
+
+function open_help_button(){
+        document.getElementById("help").style.display="block";
+        document.getElementById("black_over_lay").style.display="block";
+}
+function change_vpn_device(){
+	/*var cf = document.forms[0];
+	if(cf.selected_device[0].checked==true)
+		document.getElementById("selected_dev_table").style.display="none";
+	else
+		document.getElementById("selected_dev_table").style.display="";
+	*/
+}
+</script>
+
+<div id="black_over_lay" class="black_overlay">
+</div>
+<input type="hidden" name="hidden_pwd_change" value="0">
+<input type="hidden" name="hidden_pwd" value="">
+<input type="hidden" name="select_edit">
+<input type="hidden" name="select_del">
+<input type="hidden" name="select_num_list">
+<input type="hidden" name="selected_mode">
+<div class="qospage_title">NETGEAR Safe Browsing power by purevpn</div>
+
+<div class="fix_adv_button" id="tab_img">
+<% table_header() %>
+<tr id="labels"><td colspan=2>
+	<div id="vpn_basic" class="label_unclick" onclick="location.href='vpn_client_enhance.htm';"><div class="label_left"></div><div class="label_middle"><b><span>Basic Settings</span></b></div><div class="label_right"></div></div>
+	<div id="vpn_advanced" class="label_click" style="cursor:pointer;" onclick="location.href='vpn_client_advanced.htm';"><div class="label_left"></div><div class="label_middle"><b><span>Advanced Settings</span></b></div><div class="label_right"></div></div>
+</td>
+</tr>
+</table>
+</div>
+
+<div id="main" class="main_top_button">
+<div class="help_button_sty" style="fill:white" onclick="open_help_button()" onmouseover="this.style.fill='red'" onmouseout="this.style.fill='white'">
+<svg viewbox="0 0 24 24" style="display:block;width:100%;height:100%;"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"></svg>
+</div>
+<TABLE cellspacing=5 cellPadding=0 width=100% border=0>
+<TR><TD nowrap colspan=2><a tabindex="-1"><b>Selected VPN Devices</b></a></TD></TR>
+<TR><TD nowrap colspan=2><input type="radio" name="selected_device" id="s_all" value="0" onclick="change_vpn_device();">Selected All Attached Devices</TD></TR>
+<TR><TD nowrap colspan=2><input type="radio" name="selected_device" id="s_some" value="1" onclick="change_vpn_device();">Below devices will be protected(Maximum to support 5 devices)</TD></TR>
+<TR>
+<TD nowrap colspan=2>
+	<div align="center">
+	<TABLE id="selected_dev_table" class="tables" border="0" cellpadding="2" cellspacing="0" width="98%">
+	<TR class="table_header">
+		<TD nowrap align="center">&nbsp;</TD>
+		<TD nowrap align="center"><span class="subhead">#</span></TD>
+		<TD nowrap align=center><span class="subhead">$info_mark_ip</span></TD>
+		<TD nowrap align=center><span class="subhead">$lan_mark_name</span></TD>
+		<TD nowrap align=center><span class="subhead">$info_mark_mac</span></TD>
+
+	</TR>
+<script>
+var show_ip_array = new Array();
+var show_mac_array = new Array();
+if(show_list != "")
+{
+	for(i=0;i<attach_array.length;i++)
+	{
+		var each_info=attach_array[i].split(' ');
+		show_ip_array[i]=each_info[0];
+		show_mac_array[i]=each_info[1];
+	}
+}
+if (array_num > 0)
+{
+	for(i=1;i<=array_num;i++)
+	{
+		
+		var str = eval ( 'vpn_selected_client' + i );
+		var each_info=str.split(' ');
+		var online=0;
+		var attach_ip="0.0.0.0";
+		if( i%2== 0 )
+			document.write("<TR class=\"even_line\">");
+		else
+			document.write("<TR class=\"odd_line\">");
+		document.write('<TD nowrap align=center><input type="radio" name="ruleSelect" id="address_select'+i+'" value="'+(i-1)+'"></TD>');
+		document.write('<TD nowrap align=center><span class="subhead">'+i+'</span></TD>');
+		//ip
+		
+		for(j=0;j<show_mac_array.length;j++)
+		{
+			if(each_info[0].toLowerCase() == show_mac_array[j].toLowerCase()){
+				attach_ip=show_ip_array[j];
+			}
+		}
+		if (attach_ip=="<unknown>")
+			document.write('<TD nowrap align=center> &lt;$unknown_mark&gt;</TD>');
+		else
+			document.write('<TD nowrap align=center>'+attach_ip+'</TD>');
+		
+		//devname
+		if (each_info[1]=="<unknown>")
+			document.write('<TD nowrap align=center> &lt;$unknown_mark&gt;</TD>');
+		else
+			document.write('<TD nowrap align=center>'+each_info[1].replace(/</g, "&#60;").replace(/>/g, "&#62;")+'</TD>');
+		//mac
+		if (each_info[0]=="<unknown>")
+			document.write('<TD nowrap align=center> &lt;$unknown_mark&gt;</TD></TR>');
+		else
+			document.write('<TD nowrap align=center>'+each_info[0]+'</TD></TR>');
+	}
+}		
+</script>
+	<TR>
+	<TD nowrap colspan=5 align=center>
+	<input class="add_bt"  type="button" name="Add" id="add" value="$add_mark" onClick="valid_add();return false;">
+	<input class="edit_bt" type="button" name="Edit" id="edit" value="$edit_mark" onClick="return check_vpn_client_editnum(document.forms[0]);">
+	<script>
+	if( master == "admin" )
+		document.write('<input class="delete_bt" type="button" name="Delete" id="delete" value="$delete_mark" onClick="return check_vpn_client_del( document.forms[0]);">');
+	else
+		document.write('<input class="delete1_bt" type="button" name="Delete" id="delete" value="$delete_mark" disabled>');
+	</script>
+	</TD>
+	</TR>
+
+	</TABLE>
+	</div>
+</TD>
+</TR>
+<TR/>
+<script>
+if( master == "admin" )
+	document.write('<TR><TD nowrap colspan=2 align=center><input class="cancel_bt" type="button" name="Cancel" value="$cancel_mark" onClick="location.href=\'vpn_client_enhance.htm\'">&nbsp;&nbsp;<input class="apply_bt" type="submit" name="Apply" value="$apply_mark" onClick="return check_vpn_selected_client(document.forms[0]);"></TD></TR>');
+else
+	document.write('<TR><TD nowrap colspan=2 align=center><input class="cancel1_bt" type="button" name="Cancel" value="$cancel_mark" disabled>&nbsp;&nbsp;<input class="apply1_bt" type="submit" name="Apply" value="$apply_mark" disabled></TD></TR>');
+</script>
+<TR/>
+<TR/>
+
+</TABLE>
+</div>
+<% help_box("0","_vpn_client") %>
+</FORM>
+</BODY>
+</HTML>
+

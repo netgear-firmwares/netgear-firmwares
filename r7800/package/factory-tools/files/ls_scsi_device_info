@@ -1,0 +1,4 @@
+#!/bin/sh
+
+/bin/ls /sys/block/$1/device/scsi_device/ > /tmp/$2_info_tmp
+

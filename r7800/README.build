@@ -1,0 +1,27 @@
+===============================
+ R7800 Build Instructions
+===============================
+
+Note:
+	* This package has been built successfully on Ubuntu 16.04.5 LTS (Server) with gcc 4.6-linaro.
+	* Compiling this package on platforms other than Ubuntu 16.04.5 LTS (Server) may have unexpected results.
+
+
+============
+ Build code
+============
+
+1. uncompress source code file.
+
+	unzip R7800-V1.0.2.92_gpl_src.tar.bz2.zip
+	tar -jxvf R7800-V1.0.2.92_gpl_src.tar.bz2
+
+2. run following commands to build.
+
+	cd R7800-V1.0.2.92_gpl_src
+	cp configs/defconfig-r7800 .config
+	make V=99
+
+3. the final image is "bin/ipq806x/R7800-V1.0.2.92.img".
+
+User may upgrade to this image using the R7800 GUI "Router Upgrade" page.

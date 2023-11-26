@@ -1,0 +1,82 @@
+#!/bin/sh
+
+#Orange specific settings
+local Internet_vid=832
+local VOD_vid=838
+local IPTV_vid=840
+local Internet_pri=6
+local VOD_pri=4
+local IPTV_pri=5
+
+local RawEthWAN="eth0"
+local status=$1
+local WAN_IF=$2
+local proto=$3
+
+
+set_egress_pri(){
+
+	local vif vid pri
+	eval vid="\${$1_vid}"
+	eval pri="\${$1_pri}"
+	vif=$RawEthWAN.$vid
+
+	if [ "$2" = "0" ]; then
+
+		# status 0: wan is connecting.
+		for i in $(seq 0 7); do
+			vconfig set_egress_map $vif $i $pri
+		done
+		echo "set egress map all to $pri for $vif." >/dev/console
+
+	elif [ "$2" = "1" ]; then
+
+		# status 1: wan is up.
+		for i in $(seq 0 7); do
+			vconfig set_egress_map $vif $i $i
+		done
+		echo "set egress map all to all for $vif." >/dev/console
+
+	fi
+}
+
+local odbp odbp4 odbp6
+
+odbp=`config get orange_dhcp_booting_proto`
+[ "x$odbp" = "x" ] && odbp="0+0"
+
+odbp4=${odbp%+*}
+odbp6=${odbp#*+}
+
+[ "x$proto" = "x6" ] || proto=4
+
+if [ "x$WAN_IF" = "xbrwan" ];then
+
+	# the priority for PPPoE is 0, so simply skip it
+	[ "x`config get failover_wired_proto`" = "xorange_dhcp" ] || exit 0
+
+	if [ "x$status" = "x0" ];then
+
+		[ "x$odbp" = "x0+0" ] && set_egress_pri Internet 0
+
+		eval odbp$proto=1
+		odbp="$odbp4+$odbp6"
+		config set orange_dhcp_booting_proto=$odbp
+
+	else
+
+		eval odbp$proto=0
+		odbp="$odbp4+$odbp6"
+		config set orange_dhcp_booting_proto=$odbp
+
+		[ "x$odbp" = "x0+0" ] && set_egress_pri Internet 1
+	fi
+
+
+elif [ "x$WAN_IF" = "xbrotv" ];then
+
+	set_egress_pri VOD $status
+	set_egress_pri IPTV $status
+
+fi
+

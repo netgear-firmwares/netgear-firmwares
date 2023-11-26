@@ -1,0 +1,64 @@
+From f012334ba4b5c1158131c3b97213afe932d4e4e0 Mon Sep 17 00:00:00 2001
+From: "Hongyang.Zhang" <hongyang.zhang@dniserver.dnish.net>
+Date: Mon, 14 Sep 2020 11:13:31 +0800
+Subject: [PATCH] lighttpd
+
+Signed-off-by: Hongyang.Zhang <hongyang.zhang@dniserver.dnish.net>
+---
+ src/mod_openssl.c                          | 10 ++++------
+ src/server.c                               |  5 ++++-
+ 2 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/src/mod_openssl.c b/src/mod_openssl.c
+index 4acdac6..54135d7 100644
+--- a/src/mod_openssl.c
++++ b/src/mod_openssl.c
+@@ -889,13 +889,9 @@ network_init_ssl (server *srv, void *p_d)
+                 return -1;
+             }
+           #endif
+-            ntgrcrypt_open();
+-	    system("/sbin/https_cert_update start");
+ 	    if (network_openssl_load_pemfile(srv, s, i)) {
+-		    ntgrcrypt_close();
+ 		    return -1;
+ 	    }
+-	    ntgrcrypt_close();
+         }
+ 
+ 
+@@ -1349,8 +1345,10 @@ SETDEFAULTS_FUNC(mod_openssl_set_defaults)
+                             "of \"key\" => \"value\" strings");
+         }
+     }
+-
+-    if (0 != network_init_ssl(srv, p)) return HANDLER_ERROR;
++    ntgrcrypt_open();
++    system("/sbin/https_cert_update start");
++    if (0 != network_init_ssl(srv, p)) { ntgrcrypt_close(); return HANDLER_ERROR; }
++    ntgrcrypt_close();
+ 
+     return HANDLER_GO_ON;
+ }
+diff --git a/src/server.c b/src/server.c
+index 4860fc6..141aba8 100644
+--- a/src/server.c
++++ b/src/server.c
+@@ -1660,10 +1660,13 @@ static int server_main (server * const srv, int argc, char **argv) {
+ 	}
+ 
+ 	/* we need root-perms for port < 1024 */
++	ntgrcrypt_open();
++	system("/sbin/https_cert_update start");
+ 	if (0 != network_init(srv, stdin_fd)) {
++		ntgrcrypt_close();
+ 		return -1;
+ 	}
+-
++	ntgrcrypt_close();
+ 	if (i_am_root) {
+ #ifdef HAVE_PWD_H
+ 		/* set user and group */
+-- 
+2.7.4
+

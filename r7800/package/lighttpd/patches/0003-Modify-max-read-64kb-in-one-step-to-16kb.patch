@@ -1,0 +1,149 @@
+From c2a4d075b94ced1c4e356d7e28cf9aba0a320f68 Mon Sep 17 00:00:00 2001
+From: "Jenna.Chen" <jenna.chen@dniserver.dnish.net>
+Date: Thu, 10 Sep 2020 16:41:34 +0800
+Subject: [PATCH 3/3] Modify max read 64kb in one step to 16kb
+
+Signed-off-by: Jenna.Chen <jenna.chen@dniserver.dnish.net>
+---
+ src/gw_backend.c       | 6 +++---
+ src/http-header-glue.c | 8 ++++----
+ src/mod_cgi.c          | 8 ++++----
+ src/network_write.c    | 2 +-
+ src/settings.h         | 4 ++--
+ 5 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/src/gw_backend.c b/src/gw_backend.c
+index 2020111..8b10c30 100644
+--- a/src/gw_backend.c
++++ b/src/gw_backend.c
+@@ -1860,7 +1860,7 @@ static handler_t gw_write_request(server *srv, gw_handler_ctx *hctx) {
+         } else {
+             off_t wblen = hctx->wb->bytes_in - hctx->wb->bytes_out;
+             if ((hctx->wb->bytes_in < hctx->wb_reqlen || hctx->wb_reqlen < 0)
+-                && wblen < 65536 - 16384) {
++                && wblen < MAX_READ_LIMIT - 16384) {
+                 connection *con = hctx->remote_conn;
+                 /*(con->conf.stream_request_body & FDEVENT_STREAM_REQUEST)*/
+                 if (!(con->conf.stream_request_body
+@@ -1930,7 +1930,7 @@ handler_t gw_handle_subrequest(server *srv, connection *con, void *p_d) {
+ 
+     if ((con->conf.stream_response_body & FDEVENT_STREAM_RESPONSE_BUFMIN)
+         && con->file_started) {
+-        if (chunkqueue_length(con->write_queue) > 65536 - 4096) {
++        if (chunkqueue_length(con->write_queue) > MAX_READ_LIMIT - 4096) {
+             fdevent_fdnode_event_clr(srv->ev, hctx->fdn, FDEVENT_IN);
+         }
+         else if (!(fdevent_fdnode_interest(hctx->fdn) & FDEVENT_IN)) {
+@@ -1954,7 +1954,7 @@ handler_t gw_handle_subrequest(server *srv, connection *con, void *p_d) {
+          * buffered to disk if too large and backend can not keep up */
+         /*(64k - 4k to attempt to avoid temporary files
+          * in conjunction with FDEVENT_STREAM_REQUEST_BUFMIN)*/
+-        if (hctx->wb->bytes_in - hctx->wb->bytes_out > 65536 - 4096) {
++        if (hctx->wb->bytes_in - hctx->wb->bytes_out > MAX_READ_LIMIT - 4096) {
+             if (con->conf.stream_request_body & FDEVENT_STREAM_REQUEST_BUFMIN) {
+                 con->conf.stream_request_body &= ~FDEVENT_STREAM_REQUEST_POLLIN;
+             }
+diff --git a/src/http-header-glue.c b/src/http-header-glue.c
+index d54f00c..b79184a 100644
+--- a/src/http-header-glue.c
++++ b/src/http-header-glue.c
+@@ -1245,7 +1245,7 @@ handler_t http_response_read(server *srv, connection *con, http_response_opts *o
+ 
+         if (con->conf.stream_response_body & FDEVENT_STREAM_RESPONSE_BUFMIN) {
+             off_t cqlen = chunkqueue_length(con->write_queue);
+-            if (cqlen + (off_t)toread > 65536 - 4096) {
++            if (cqlen + (off_t)toread > MAX_WRITE_LIMIT - 4096) {
+                 if (!con->is_writable) {
+                     /*(defer removal of FDEVENT_IN interest since
+                      * connection_state_machine() might be able to send data
+@@ -1254,8 +1254,8 @@ handler_t http_response_read(server *srv, connection *con, http_response_opts *o
+                      * mod_proxy_handle_subrequest())*/
+                     fdevent_fdnode_event_clr(srv->ev, fdn, FDEVENT_IN);
+                 }
+-                if (cqlen >= 65536-1) return HANDLER_GO_ON;
+-                toread = 65536 - 1 - (unsigned int)cqlen;
++                if (cqlen >= MAX_WRITE_LIMIT-1) return HANDLER_GO_ON;
++                toread = MAX_WRITE_LIMIT - 1 - (unsigned int)cqlen;
+                 /* Note: heuristic is fuzzy in that it limits how much to read
+                  * from backend based on how much is pending to write to client.
+                  * Modules where data from backend is framed (e.g. FastCGI) may
+@@ -1316,7 +1316,7 @@ handler_t http_response_read(server *srv, connection *con, http_response_opts *o
+         }
+ 
+         if ((con->conf.stream_response_body & FDEVENT_STREAM_RESPONSE_BUFMIN)
+-            && chunkqueue_length(con->write_queue) > 65536 - 4096) {
++            && chunkqueue_length(con->write_queue) > MAX_WRITE_LIMIT - 4096) {
+             if (!con->is_writable) {
+                 /*(defer removal of FDEVENT_IN interest since
+                  * connection_state_machine() might be able to send
+diff --git a/src/mod_cgi.c b/src/mod_cgi.c
+index 4511660..3ac3124 100644
+--- a/src/mod_cgi.c
++++ b/src/mod_cgi.c
+@@ -571,7 +571,7 @@ static ssize_t cgi_write_file_chunk_mmap(server *srv, connection *con, int fd, c
+ 		c->file.mmap.length = file_end - c->file.mmap.offset;
+ 
+ 		if (MAP_FAILED == (c->file.mmap.start = mmap(NULL, c->file.mmap.length, PROT_READ, MAP_PRIVATE, c->file.fd, c->file.mmap.offset))) {
+-			if (toSend > 65536) toSend = 65536;
++			if (toSend > MAX_READ_LIMIT) toSend = MAX_READ_LIMIT;
+ 			data = malloc(toSend);
+ 			force_assert(data);
+ 			if (-1 == lseek(c->file.fd, offset, SEEK_SET)
+@@ -695,7 +695,7 @@ static int cgi_write_request(server *srv, handler_ctx *hctx, int fd) {
+ 		}
+ 	} else {
+ 		off_t cqlen = cq->bytes_in - cq->bytes_out;
+-		if (cq->bytes_in != con->request.content_length && cqlen < 65536 - 16384) {
++		if (cq->bytes_in != con->request.content_length && cqlen < MAX_READ_LIMIT - 16384) {
+ 			/*(con->conf.stream_request_body & FDEVENT_STREAM_REQUEST)*/
+ 			if (!(con->conf.stream_request_body & FDEVENT_STREAM_REQUEST_POLLIN)) {
+ 				con->conf.stream_request_body |= FDEVENT_STREAM_REQUEST_POLLIN;
+@@ -964,7 +964,7 @@ SUBREQUEST_FUNC(mod_cgi_handle_subrequest) {
+ 
+ 	if ((con->conf.stream_response_body & FDEVENT_STREAM_RESPONSE_BUFMIN)
+ 	    && con->file_started) {
+-		if (chunkqueue_length(con->write_queue) > 65536 - 4096) {
++		if (chunkqueue_length(con->write_queue) > MAX_WRITE_LIMIT - 4096) {
+ 			fdevent_fdnode_event_clr(srv->ev,hctx->fdn,FDEVENT_IN);
+ 		} else if (!(fdevent_fdnode_interest(hctx->fdn) & FDEVENT_IN)) {
+ 			/* optimistic read from backend */
+@@ -977,7 +977,7 @@ SUBREQUEST_FUNC(mod_cgi_handle_subrequest) {
+ 	if (cq->bytes_in != (off_t)con->request.content_length) {
+ 		/*(64k - 4k to attempt to avoid temporary files
+ 		 * in conjunction with FDEVENT_STREAM_REQUEST_BUFMIN)*/
+-		if (cq->bytes_in - cq->bytes_out > 65536 - 4096
++		if (cq->bytes_in - cq->bytes_out > MAX_WRITE_LIMIT - 4096
+ 		    && (con->conf.stream_request_body & FDEVENT_STREAM_REQUEST_BUFMIN)){
+ 			con->conf.stream_request_body &= ~FDEVENT_STREAM_REQUEST_POLLIN;
+ 			if (-1 != hctx->fd) return HANDLER_WAIT_FOR_EVENT;
+diff --git a/src/network_write.c b/src/network_write.c
+index 325546b..c0dd84d 100644
+--- a/src/network_write.c
++++ b/src/network_write.c
+@@ -160,7 +160,7 @@ static int network_write_file_chunk_no_mmap(server *srv, int fd, chunkqueue *cq,
+ 
+     if (0 != chunkqueue_open_file_chunk(srv, cq)) return -1;
+ 
+-    if (toSend > 64*1024) toSend = 64*1024; /* max read 64kb in one step */
++    if (toSend > MAX_READ_LIMIT) toSend = MAX_READ_LIMIT; /* max read xxkb in one step */
+     buffer_string_prepare_copy(srv->tmp_buf, toSend);
+ 
+     if (-1 == lseek(c->file.fd, offset, SEEK_SET)) {
+diff --git a/src/settings.h b/src/settings.h
+index 540b13d..c2c596f 100644
+--- a/src/settings.h
++++ b/src/settings.h
+@@ -13,8 +13,8 @@
+ #define BUFFER_MAX_REUSE_SIZE  (4 * 1024)
+ 
+ /* both should be way smaller than SSIZE_MAX :) */
+-#define MAX_READ_LIMIT (256*1024)
+-#define MAX_WRITE_LIMIT (256*1024)
++#define MAX_READ_LIMIT (16*1024)
++#define MAX_WRITE_LIMIT (16*1024)
+ 
+ /**
+  * max size of the HTTP request header
+-- 
+2.7.4
+
