@@ -32,20 +32,27 @@ jobs:
         run: |
           apt-get update -qq
           apt-get install -qq --no-install-recommends \
-            autoconf \
+            autoconf        \
             build-essential \
-            cmake \
-            curl \
-            file \
-            libc6-dev \
-            m4 \
-            pkg-config \
+            cmake           \
+            curl            \
+            file            \
+            gawk            \
+            git             \
+            libc6-dev       \
+            m4              \
+            ncurses-dev     \
+            pkg-config      \
             software-properties-common \
+            subversion      \
             tzdata \
             unzip \
             wget \
             zip \
-            python3-pip
+            zlib1g \
+            zlib1g-dev \
+            python \
+            python-pip
           pwd
           df
           env
