@@ -30,9 +30,26 @@ jobs:
       # Build
       - name: Build firmeware
         run: |
+          apt-get update -qq
+          apt-get install -qq --no-install-recommends \
+            autoconf \
+            build-essential \
+            cmake \
+            curl \
+            file \
+            libc6-dev \
+            m4 \
+            pkg-config \
+            software-properties-common \
+            tzdata \
+            unzip \
+            wget \
+            zip \
+            python3-pip
           pwd
           df
           env
+          ls -lh
           cd r7800
           cp configs/defconfig-r7800 .config
           make -j 4 V=99
