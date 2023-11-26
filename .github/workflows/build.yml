@@ -57,6 +57,14 @@ jobs:
           df
           env
           ls -lh
+          #
+          # can not compile as root.
+          #
+          useradd -d `pwd` -s /bin/bash build
+          chown -R build:build `pwd`
+          su - build
+          pwd
+          ls -lh
           cd r7800
           cp configs/defconfig-r7800 .config
           make -j 4 V=99
