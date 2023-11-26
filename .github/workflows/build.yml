@@ -66,6 +66,6 @@ jobs:
           cd r7800
           cp configs/defconfig-r7800 .config
           chown -R build:build `pwd`
-          su -m -c "id; pwd; make -j 4 V=99"
+          su -m -c "id; pwd; make -j 4 V=99" build
           ls -lhR bin
           # the final image is "bin/ipq806x/R7800-V1.0.2.92.img".
